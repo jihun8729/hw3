@@ -167,29 +167,21 @@ void download_file(client_info *c_info){
 	int read_cnt;
 	char buffer[BUF_SIZE];
 	FILE *fp;
-	int can_download;
 	
 	read(c_info->sockfd,&num,sizeof(int)); //복사 할 파일 인자값 read
+    fp = fopen(c_info->files[num].ftitle,"rb"); //해당 파일 rb모드로 open
     
-	if(access(c_info->files[num].ftitle,R_OK)!=0){ //파일을 읽을 수 있는지 확인
-		can_download=0;
-		send(c_info->sockfd,&can_download,sizeof(int),0);
-	}else{
-		can_download=1;
-		send(c_info->sockfd,&can_download,sizeof(int),0);
-		fp = fopen(c_info->files[num].ftitle,"rb"); //해당 파일 rb모드로 open
-		
-		while(1){
-			memset(buffer, 0, BUF_SIZE); //버퍼 초기화
-			read_cnt = fread((void*)buffer, 1, BUF_SIZE, fp);
-			if (read_cnt < BUF_SIZE){
-				write(c_info->sockfd, buffer, read_cnt);
-				break;
-			}
-			write(c_info->sockfd, buffer, BUF_SIZE);
-		}
-		fclose(fp);
-	} 
+	while(1){
+        memset(buffer, 0, BUF_SIZE); //버퍼 초기화
+        read_cnt = fread((void*)buffer, 1, BUF_SIZE, fp);
+	
+        if (read_cnt < BUF_SIZE){
+            write(c_info->sockfd, buffer, read_cnt);
+            break;
+        }
+        write(c_info->sockfd, buffer, BUF_SIZE);
+    }
+    fclose(fp); 
 }
 
 void upload_file(client_info  *c_info){
